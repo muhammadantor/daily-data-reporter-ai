@@ -1,0 +1,573 @@
+{
+  "name": "Daily Data Reporter + Auto Responder System",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app7kZVn2yoxD3FPB",
+          "mode": "list",
+          "cachedResultName": "Demo Customer Data",
+          "cachedResultUrl": "https://airtable.com/app7kZVn2yoxD3FPB"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblNsKqPZY3LZDjiE",
+          "mode": "list",
+          "cachedResultName": "Imported table",
+          "cachedResultUrl": "https://airtable.com/app7kZVn2yoxD3FPB/tblNsKqPZY3LZDjiE"
+        },
+        "filterByFormula": "IS_AFTER(CREATED_TIME(), DATEADD(NOW(), -1, 'day'))",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -208,
+        224
+      ],
+      "id": "ce553e68-01c0-4a29-a3c8-19efca83fea9",
+      "name": "Data Collect",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "P6JXkJZ43WbqHYUv",
+          "name": "Airtable Personal Access Token account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 22
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        -144
+      ],
+      "id": "5d022ebb-9764-4af4-9b5d-5346790904ee",
+      "name": "Triger Every 24 Hours"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4927283d-1817-4e01-a01e-4abee4c127ef",
+              "name": "Full Name",
+              "value": "={{ $json['First Name'] }} {{ $json['Last Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "9a65d867-21f3-4934-bea3-5bd52e60b709",
+              "name": "Country",
+              "value": "={{ $json.Country }}",
+              "type": "string"
+            },
+            {
+              "id": "64a48b17-1156-4369-8863-c4413c6174e2",
+              "name": "Email",
+              "value": "={{ $json.Email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        144,
+        224
+      ],
+      "id": "095ad3fd-990b-4e21-be08-42ee2e7c4a20",
+      "name": "Data Filter"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.Country }}",
+                    "rightValue": "={{ $json.Country }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "fcd20dfd-6d76-41f3-a941-8b3c1e7f2c7a"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f20ae04d-cf9e-4df5-a938-cf6a1c91a9c1",
+                    "leftValue": "={{ $json.Email }}",
+                    "rightValue": "={{ $json.Email }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        432,
+        224
+      ],
+      "id": "c6000ad9-c240-49f3-8923-ca8e8b0c1e99",
+      "name": "Pathway"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4d87d318-f58c-483e-a3e6-360713f69ee1",
+              "leftValue": "={{ $('Data Filter').item.json.Email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        768,
+        240
+      ],
+      "id": "630d47a7-3b0e-48ff-8d3d-8521af29558b",
+      "name": "If Email __Exists"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a short human readable personalized thank you email,without subject and mention my name \"Muhammad Antor\" at the end of email\n\nName: {{ $json['Full Name'] }}\n\nCountry: {{ $json.Country }}\n\n\nKeep it friendly and professional.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1200,
+        96
+      ],
+      "id": "eb64f2b1-b603-47f3-81f2-1c8b103524d5",
+      "name": "AI Brain"
+    },
+    {
+      "parameters": {
+        "model": "z-ai/glm-4.5-air:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        336
+      ],
+      "id": "3d189988-1a3f-441a-bbb8-2f8a8c61bfd9",
+      "name": "Gmail Response Create",
+      "credentials": {
+        "openRouterApi": {
+          "id": "m9cv5vn8jvOkDsCI",
+          "name": "OpenRouter account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        880,
+        112
+      ],
+      "id": "ce689b53-9851-4bf5-ae6e-05b8ffb3a0bf",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "____",
+      "typeVersion": 1,
+      "position": [
+        928,
+        352
+      ],
+      "id": "d03ca74f-e23e-485d-a904-031b7165a14d"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('If Email __Exists').item.json.Email }}",
+        "subject": "= Thank You  Dear  {{ $('If Email __Exists').item.json['Full Name'] }}",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        336
+      ],
+      "id": "d3bacb2f-65a3-4533-b3cf-f9349bcc0c20",
+      "name": "Send Emails",
+      "webhookId": "1541f0b8-4ff9-4726-aace-e0a9bad2ef38",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2bXyfcHOrObGmbSS",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9880fada-33d6-419d-ba0f-bef3481666a9",
+              "leftValue": "={{ $json.Country }}",
+              "rightValue": "China",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "ac4d8c04-5a4e-4692-a418-ef8a7b0233d9",
+              "leftValue": "={{ $json.Country }}",
+              "rightValue": "Spain",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "e0fca801-ba24-4a29-b263-72f1cac8cfc1",
+              "leftValue": "={{ $json.Country }}",
+              "rightValue": "Bangladesh",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        112,
+        -144
+      ],
+      "id": "a9b64dff-5797-455b-a4de-e1e419a2a1e9",
+      "name": "Data Filtering"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "table",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        496,
+        -160
+      ],
+      "id": "8bf6b992-7cbf-4e60-b457-10b6e63c06ef",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a professional daily report summary.\n\nCountries Included:\nChina, Spain, Bangladesh\n\nRecords: {{ $json.table }}\n\n\nRules:\n- Show total number of submissions\n- Show country-wise count breakdown\n- Bullet point insights\n- Keep concise\n- Add header: Daily Combined Country Report",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        736,
+        -160
+      ],
+      "id": "78cf6aad-71d8-49b1-8212-1876b2c2946b",
+      "name": "AI Brain1",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "model": "z-ai/glm-4.5-air:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        736,
+        48
+      ],
+      "id": "aa9293a6-c3ec-456e-8c5b-d2de91baab3b",
+      "name": "Create Brief",
+      "credentials": {
+        "openRouterApi": {
+          "id": "m9cv5vn8jvOkDsCI",
+          "name": "OpenRouter account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "mdantor114789@gmail.com",
+        "subject": "Daily Brief",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1232,
+        -160
+      ],
+      "id": "d2c96756-a9d6-43bc-babc-488a818ce47e",
+      "name": "Send Brief To Admin",
+      "webhookId": "e4bd250c-8ccb-4a2f-b6fd-30746cd9c25b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2bXyfcHOrObGmbSS",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Triger Every 24 Hours": {
+      "main": [
+        [
+          {
+            "node": "Data Collect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Collect": {
+      "main": [
+        [
+          {
+            "node": "Data Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Filter": {
+      "main": [
+        [
+          {
+            "node": "Pathway",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pathway": {
+      "main": [
+        [
+          {
+            "node": "Data Filtering",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If Email __Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Email __Exists": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Response Create": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Brain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Brain": {
+      "main": [
+        [
+          {
+            "node": "Send Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "AI Brain",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "____",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "____": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Filtering": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Brain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Brief": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Brain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Brain1": {
+      "main": [
+        [
+          {
+            "node": "Send Brief To Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d5136cb7-dbea-4f12-bfff-92015140d04c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4ac8bdc6a269af810334633c41d43e2db98c8eae4d62c1f021cd138086545c21"
+  },
+  "id": "pdAzQEyAKzwQtQcq",
+  "tags": []
+}
