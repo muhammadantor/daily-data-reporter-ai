@@ -37,6 +37,12 @@ It also automatically replies to users if their email is available.
 
 ---
 
+## 🧩 Workflow Diagram
+
+![Workflow Diagram](workflow-diagram.png)
+
+---
+
 ## 👨‍💻 Author
 
 Muhammad Antor  
