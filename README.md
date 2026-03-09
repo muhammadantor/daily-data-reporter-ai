@@ -39,7 +39,7 @@ It also automatically replies to users if their email is available.
 
 ## 🧩 Workflow Diagram
 
-![Workflow Diagram](Screenshot 2025-06-01 222237.png)
+![Workflow Diagram](Screenshot 2026-03-02 222737.png)
 
 ---
 
